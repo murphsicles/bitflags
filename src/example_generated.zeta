@@ -1,0 +1,9 @@
+// Auto-converted from /tmp/df-bitflags-2.11.1/bitflags-2.11.1/src/example_generated.rs
+
+__declare_public_bitflags ! { #[doc = " This is the same `Flags` struct defined in the [crate level example](../index.html#example)."] #[doc = " Note that this struct is just for documentation purposes only, it must not be used outside"] #[doc = " this crate."] pub struct Flags }
+__declare_internal_bitflags ! { pub struct Field0: u32 }
+__impl_internal_bitflags ! { Field0: u32, Flags { #[doc = " Field `A`."] #[doc = ""] #[doc = " This flag has the value `0b00000001`."] const A = 0b00000001; #[doc = " Field `B`."] #[doc = ""] #[doc = " This flag has the value `0b00000010`."] const B = 0b00000010; #[doc = " Field `C`."] #[doc = ""] #[doc = " This flag has the value `0b00000100`."] const C = 0b00000100; const ABC = Self::A.bits() | Self::B.bits() | Self::C.bits(); } }
+__impl_public_bitflags_forward ! { Flags: u32, Field0 }
+__impl_public_bitflags_ops ! { Flags }
+__impl_public_bitflags_iter ! { Flags: u32, Flags }
+__impl_public_bitflags_consts ! { Flags: u32 { #[doc = " Field `A`."] #[doc = ""] #[doc = " This flag has the value `0b00000001`."] const A = 0b00000001; #[doc = " Field `B`."] #[doc = ""] #[doc = " This flag has the value `0b00000010`."] const B = 0b00000010; #[doc = " Field `C`."] #[doc = ""] #[doc = " This flag has the value `0b00000100`."] const C = 0b00000100; const ABC = Self::A.bits() | Self::B.bits() | Self::C.bits(); } }

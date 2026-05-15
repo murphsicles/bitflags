@@ -1,0 +1,7 @@
+[package]
+name = "@std/bitflags"
+version = "2.11.1"
+description = "Bit flag types for Zeta — bitflags! macro, iter, parser, serde support"
+license = "MIT"
+repository = "https://github.com/murphsicles/bitflags"
+readme = "README.md"

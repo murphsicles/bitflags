@@ -1,0 +1,181 @@
+// Auto-converted from /tmp/df-bitflags-2.11.1/bitflags-2.11.1/src/traits.rs
+
+use core::{ fmt, ops::{ BitAnd, BitOr, BitXor, Not } };
+use crate::{ iter, parser::{ ParseError, ParseHex, WriteHex } };
+/// 
+A defined flags value that may be named or unnamed.
+
+#[derive(Debug)]
+pub struct Flag<B> {
+ name: &str,
+ value: B,
+}
+
+impl<B> Flag<B> {
+ pub fn new(name: &str, value: B) -> Self {
+ Flag { name, value }
+ }
+ 
+ pub fn name(&self) -> &str {
+ self.name
+ }
+ 
+ pub fn value(&self) -> &B {
+ &self.value
+ }
+ 
+ pub fn is_named(&self) -> bool {
+ ! self.name.is_empty()
+ }
+ 
+ pub fn is_unnamed(&self) -> bool {
+ self.name.is_empty()
+ }
+ 
+}
+
+/// 
+A set of defined flags using a bits type as storage.
+
+## Implementing `Flags`
+
+This trait is implemented by the [`bitflags`](macro.bitflags.html) macro: 
+
+```
+use bitflags::bitflags;
+
+bitflags! {
+ struct MyFlags: u8 {
+ const A = 1;
+ const B = 1 << 1;
+ }
+}
+```
+
+It can also be implemented manually: 
+
+```
+use bitflags::{Flag, Flags};
+
+struct MyFlags(u8);
+
+impl Flags for MyFlags {
+ const FLAGS: &'static [Flag<Self>] = &[
+ Flag::new("A", MyFlags(1)),
+ Flag::new("B", MyFlags(1 << 1)),
+ ];
+
+ type Bits = u8;
+
+ fn from_bits_retain(bits: Self::Bits) -> Self {
+ MyFlags(bits)
+ }
+
+ fn bits(&self) -> Self::Bits {
+ self.0
+ }
+}
+```
+
+## Using `Flags`
+
+The `Flags` trait can be used generically to work with any flags types. In this example,
+we can count the number of defined named flags: 
+
+```
+# use bitflags::{bitflags, Flags};
+fn defined_flags<F: Flags>() -> usize {
+ F::FLAGS.iter().filter(|f| f.is_named()).count()
+}
+
+bitflags! {
+ struct MyFlags: u8 {
+ const A = 1;
+ const B = 1 << 1;
+ const C = 1 << 2;
+
+ const _ = !0;
+ }
+}
+
+assert_eq!(3, defined_flags::<MyFlags>());
+```
+
+pub trait Flags {
+ const FLAGS: &[Flag<Self>];
+ type Bits;
+ fn empty() -> Self;
+ fn all() -> Self;
+ fn known_bits(&self) -> Self::Bits;
+ fn unknown_bits(&self) -> Self::Bits;
+ fn contains_unknown_bits(&self) -> bool;
+ fn bits(&self) -> Self::Bits;
+ fn from_bits(bits: Self::Bits) -> Option<Self>;
+ fn from_bits_truncate(bits: Self::Bits) -> Self;
+ fn from_bits_retain(bits: Self::Bits) -> Self;
+ fn from_name(name: &str) -> Option<Self>;
+ fn iter(&self) -> iter::Iter<Self>;
+ fn iter_names(&self) -> iter::IterNames<Self>;
+ fn iter_defined_names() -> iter::IterDefinedNames<Self>;
+ fn is_empty(&self) -> bool;
+ fn is_all(&self) -> bool;
+ fn intersects(&self, other: Self) -> bool where Self: Sized;
+ fn contains(&self, other: Self) -> bool where Self: Sized;
+ fn truncate(&mut self) where Self: Sized;
+ fn insert(&mut self, other: Self) where Self: Sized;
+ fn remove(&mut self, other: Self) where Self: Sized;
+ fn toggle(&mut self, other: Self) where Self: Sized;
+ fn set(&mut self, other: Self, value: bool) where Self: Sized;
+ fn clear(&mut self) where Self: Sized;
+ fn intersection(self, other: Self) -> Self;
+ fn union(self, other: Self) -> Self;
+ fn difference(self, other: Self) -> Self;
+ fn symmetric_difference(self, other: Self) -> Self;
+ fn complement(self) -> Self
+}
+
+/// 
+A bits type that can be used as storage for a flags type.
+
+pub trait Bits {
+ const EMPTY: Self;
+ const ALL: Self
+}
+
+pub trait Primitive {
+}
+
+macro_rules ! impl_bits { ($ ($ u: ty, $ i: ty ) *) => { $ (impl Bits for $ u { const EMPTY: $ u = 0; const ALL: $ u = <$ u >::MAX; } impl Bits for $ i { const EMPTY: $ i = 0; const ALL: $ i = <$ u >::MAX as $ i; } impl ParseHex for $ u { fn parse_hex(input: &str) -> Result<Self, ParseError> { <$ u >::from_str_radix(input, 16).map_err(| _ | ParseError::invalid_hex_flag(input)) } } impl ParseHex for $ i { fn parse_hex(input: &str) -> Result<Self, ParseError> { <$ i >::from_str_radix(input, 16).map_err(| _ | ParseError::invalid_hex_flag(input)) } } impl WriteHex for $ u { fn write_hex<W: fmt::Write>(&self, mut writer: W) -> fmt::Result { write!(writer, "{:x}", self) } } impl WriteHex for $ i { fn write_hex<W: fmt::Write>(&self, mut writer: W) -> fmt::Result { write!(writer, "{:x}", self) } } impl Primitive for $ i { } impl Primitive for $ u { }) * } }
+impl_bits ! { u8, i8, u16, i16, u32, i32, u64, i64, u128, i128, usize, isize }
+/// A trait for referencing the `bitflags`-owned internal type
+/// without exposing it publicly.
+pub trait PublicFlags {
+ type Primitive;
+ type Internal
+}
+
+#[deprecated(note = "use the `Flags` trait instead")]
+pub trait BitFlags {
+ type Iter;
+ type IterNames
+}
+
+impl<B: Flags> BitFlags for B {
+ type Iter = iter::Iter<Self>;
+ type IterNames = iter::IterNames<Self>
+}
+
+impl<B: Flags> ImplementedByBitFlagsMacro for B {
+}
+
+/// A marker trait that signals that an implementation of `BitFlags` came from the `bitflags!` macro.
+/// 
+/// There's nothing stopping an end-user from implementing this trait, but we don't guarantee their
+/// manual implementations won't break between non-breaking releases.
+pub trait ImplementedByBitFlagsMacro {
+}
+
+mod __private {
+ pub use super::{ ImplementedByBitFlagsMacro, PublicFlags }
+}
+
